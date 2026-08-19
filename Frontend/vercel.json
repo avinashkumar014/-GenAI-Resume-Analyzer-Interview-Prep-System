@@ -3,5 +3,11 @@
   "outputDirectory": "dist",
   "env": {
     "VITE_API_BASE_URL": "@genai_api_url"
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   }
 }
