@@ -1,6 +1,13 @@
 const { Router } = require('express')
 const authController = require("../controllers/auth.controller")
 const authMiddleware = require("../middlewares/auth.middleware")
+let devController
+try {
+	// require dev controller if available
+	devController = require("../controllers/dev.controller")
+} catch (e) {
+	devController = null
+}
 
 const authRouter = Router()
 
@@ -33,7 +40,12 @@ authRouter.get("/logout", authController.logoutUserController)
  * @description get the current logged in user details
  * @access private
  */
-authRouter.get("/get-me", authMiddleware.authUser, authController.getMeController)
+authRouter.get("/get-me", authMiddleware.optionalAuthUser, authController.getMeController)
+
+// Dev helper: create/find a test user and set cookie (only in non-production)
+if (process.env.NODE_ENV !== 'production' && devController) {
+	authRouter.post('/dev-login', devController.devLogin)
+}
 
 
 module.exports = authRouter

@@ -13,8 +13,8 @@ const Register = () => {
     
     const handleSubmit = async (e) => {
         e.preventDefault()
-        await handleRegister({username,email,password})
-        navigate("/")
+        const success = await handleRegister({ username, email, password })
+        if (success) navigate('/')
     }
 
     if(loading){
@@ -22,36 +22,43 @@ const Register = () => {
     }
 
     return (
-        <main>
-            <div className="form-container">
-                <h1>Register</h1>
+        <main className="auth-main">
+            <div className="auth-card register large">
+                <section className="left-panel form-area">
+                    <h1 className="title">Hello!</h1>
+                    <p className="subtitle">Create your account</p>
 
-                <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit} className="register-form">
+                        <div className="input-group pill">
+                            <input
+                                onChange={(e) => { setUsername(e.target.value) }}
+                                type="text" id="username" name='username' placeholder='Username' />
+                        </div>
 
-                    <div className="input-group">
-                        <label htmlFor="username">Username</label>
-                        <input
-                            onChange={(e) => { setUsername(e.target.value) }}
-                            type="text" id="username" name='username' placeholder='Enter username' />
-                    </div>
-                    <div className="input-group">
-                        <label htmlFor="email">Email</label>
-                        <input
-                            onChange={(e) => { setEmail(e.target.value) }}
-                            type="email" id="email" name='email' placeholder='Enter email address' />
-                    </div>
-                    <div className="input-group">
-                        <label htmlFor="password">Password</label>
-                        <input
-                            onChange={(e) => { setPassword(e.target.value) }}
-                            type="password" id="password" name='password' placeholder='Enter password' />
-                    </div>
+                        <div className="input-group pill">
+                            <input
+                                onChange={(e) => { setEmail(e.target.value) }}
+                                type="email" id="email" name='email' placeholder='Email' />
+                        </div>
 
-                    <button className='button primary-button' >Register</button>
+                        <div className="input-group pill">
+                            <input
+                                onChange={(e) => { setPassword(e.target.value) }}
+                                type="password" id="password" name='password' placeholder='Password' />
+                        </div>
 
-                </form>
+                        <div className="form-row">
+                            <button className='btn-register primary' type="submit">Create Account</button>
+                        </div>
 
-                <p>Already have an account? <Link to={"/login"} >Login</Link> </p>
+                        <p className="signup-link">Already have an account? <Link to={'/login'}><strong>Login</strong></Link></p>
+                    </form>
+                </section>
+
+                <aside className="right-panel hero">
+                    <h2>Welcome Back!</h2>
+                    <p>Simply create your account by clicking the signup button.</p>
+                </aside>
             </div>
         </main>
     )

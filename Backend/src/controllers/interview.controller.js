@@ -1,4 +1,4 @@
-const pdfParse = require("pdf-parse")
+const { PDFParse } = require("pdf-parse")
 const { generateInterviewReport, generateResumePdf } = require("../services/ai.service")
 const interviewReportModel = require("../models/interviewReport.model")
 
@@ -10,27 +10,61 @@ const interviewReportModel = require("../models/interviewReport.model")
  */
 async function generateInterViewReportController(req, res) {
 
-    const resumeContent = await (new pdfParse.PDFParse(Uint8Array.from(req.file.buffer))).getText()
-    const { selfDescription, jobDescription } = req.body
+    try {
+        const resumeBuffer = req.file?.buffer
+        let resumeText = ""
 
-    const interViewReportByAi = await generateInterviewReport({
-        resume: resumeContent.text,
-        selfDescription,
-        jobDescription
-    })
+        if (resumeBuffer) {
+            const parser = new PDFParse({ data: resumeBuffer })
+            try {
+                const parsed = await parser.getText()
+                resumeText = parsed?.text || ""
+            } finally {
+                await parser.destroy()
+            }
+        }
 
-    const interviewReport = await interviewReportModel.create({
-        user: req.user.id,
-        resume: resumeContent.text,
-        selfDescription,
-        jobDescription,
-        ...interViewReportByAi
-    })
+        const { selfDescription, jobDescription } = req.body
 
-    res.status(201).json({
-        message: "Interview report generated successfully.",
-        interviewReport
-    })
+        if (!jobDescription?.trim()) {
+            return res.status(400).json({ message: "Job description is required." })
+        }
+
+        if (!resumeText.trim() && !selfDescription?.trim()) {
+            return res.status(400).json({ message: "Either resume file or selfDescription is required." })
+        }
+
+        const interViewReportByAi = await generateInterviewReport({
+            resume: resumeText,
+            selfDescription,
+            jobDescription
+        })
+
+        const interviewReport = await interviewReportModel.create({
+            user: req.user.id,
+            resume: resumeText,
+            selfDescription,
+            jobDescription,
+            ...interViewReportByAi
+        })
+
+        return res.status(201).json({
+            message: "Interview report generated successfully.",
+            interviewReport
+        })
+    } catch (err) {
+        console.error("generateInterViewReportController error:", err)
+
+        if (err?.name === "InvalidPDFException" || err?.message?.toLowerCase().includes("pdf")) {
+            return res.status(400).json({ message: "The uploaded file is not a readable PDF." })
+        }
+
+        if (err?.message?.includes("GOOGLE_GENAI_API_KEY")) {
+            return res.status(503).json({ message: "AI service is not configured on the server." })
+        }
+
+        return res.status(502).json({ message: "AI service failed to generate the interview report." })
+    }
 
 }
 

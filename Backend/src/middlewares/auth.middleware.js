@@ -5,7 +5,7 @@ const tokenBlacklistModel = require("../models/blacklist.model")
 
 async function authUser(req, res, next) {
 
-    const token = req.cookies.token
+    const token = req.cookies?.token
 
     if (!token) {
         return res.status(401).json({
@@ -39,5 +39,30 @@ async function authUser(req, res, next) {
 
 }
 
+async function optionalAuthUser(req, res, next) {
+    const token = req.cookies?.token
 
-module.exports = { authUser }
+    if (!token) {
+        req.user = null
+        return next()
+    }
+
+    const isTokenBlacklisted = await tokenBlacklistModel.findOne({ token })
+
+    if (isTokenBlacklisted) {
+        req.user = null
+        return next()
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        req.user = decoded
+        return next()
+    } catch (err) {
+        req.user = null
+        return next()
+    }
+}
+
+
+module.exports = { authUser, optionalAuthUser }
