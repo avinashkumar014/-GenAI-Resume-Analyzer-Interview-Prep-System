@@ -2,7 +2,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "env": {
-    "VITE_API_BASE_URL": "@genai_api_url"
+    "VITE_API_BASE_URL": "https://genai-resume-analyzer-interview-prep.onrender.com"
   },
   "rewrites": [
     {
